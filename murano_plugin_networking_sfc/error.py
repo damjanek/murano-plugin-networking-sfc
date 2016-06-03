@@ -13,7 +13,8 @@
 #    under the License.
 
 
-class AmbiguousNameException(Exception):
-    def __init__(self, name):
-        super(AmbiguousNameException, self).__init__(
-            "Image name '{0}' is ambiguous".format(name))
+class APIError(Exception):
+    pass
+
+class NotFoundError(APIError):
+    pass

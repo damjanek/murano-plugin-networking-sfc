@@ -12,11 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import abc
-
 from murano.common import auth_utils
 from murano.dsl import session_local_storage
 from neutronclient.v2_0 import client
+from neutronclient.common import exceptions as n_err
 from oslo_config import cfg
 
 from murano_plugin_networking_sfc import config
@@ -24,8 +23,10 @@ from murano_plugin_networking_sfc import error
 
 CONF = cfg.CONF
 
+DEFAULT = object()
 
-class NeutronClient(object):
+
+class NetworkingSFCClient(object):
 
     def __init__(self, this):
         self._owner = this.find_owner('io.murano.Environment')
@@ -35,37 +36,53 @@ class NeutronClient(object):
         cls.CONF = config.init_config(CONF)
 
     @property
-    def _api_client(self):
+    def _client(self):
         region = None
         if self._owner is not None:
             region = self._owner['region']
-        return self.create_neutron_client(region)
-
-    @abc.abstractproperty
-    def resource_name(self):
-        pass
-
-    @property
-    def _client(self):
-        return getattr(self._api_client, self.resource_name)
+        return self._get_client(region)
 
     @staticmethod
     @session_local_storage.execution_session_memorize
-    def create_neutron_client(region):
+    def _get_client(region):
         params = auth_utils.get_session_client_parameters(
             service_type='network', conf=CONF, region=region)
         return client.Client(**params)
 
-    def list(self):
-        return self._client.list()
+    @staticmethod
+    def _prepare_request(resource_name, **kwargs):
+        params = {}
+        for k, v in kwargs.items():
+            if v is not DEFAULT:
+                params[k] = v
+        return {resource_name: params}
 
-    def get_by_id(self, obj_id):
-        return self._client.get(obj_id)
+    def create_port_pair(
+            self, ingress, egress, name=DEFAULT, description=DEFAULT,
+            service_function_parameters=DEFAULT):
+        request = self._prepare_request(
+            'port_pair', ingress=ingress, egress=egress,
+            name=name, description=description,
+            service_function_parameters=service_function_parameters)
+        response = self._client.create_port_pair(request)
+        return response['port_pair']
 
-    def get_by_name(self, name):
-        obj_list = list(self._client.list(filters={'name': name}))
-        if not obj_list:
-            return None
-        if len(obj_list) > 1:
-            raise error.AmbiguousNameException(name)
-        return obj_list
+    def delete_port_pair(self, id_):
+        try:
+            self._client.delete_port_pair(id_)
+        except n_err.NotFound as exc:
+            raise error.NotFoundError(exc.message)
+
+    def list_port_pairs(self):
+        response = self._client.list_port_pairs()
+        return response['port_pairs']
+
+    def show_port_pair(self, id_):
+        response = self._client.show_port_pair(id_)
+        return response['port_pair']
+
+    def update_port_pair(self, id_, name=DEFAULT, description=DEFAULT):
+        request = self._prepare_request(
+            'port_pair', id=id_, name=name, description=description)
+        response = self._client.update_port_pair(request)
+        return response['port_pair']

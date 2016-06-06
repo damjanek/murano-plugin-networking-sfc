@@ -12,5 +12,5 @@ Properties:
 Methods:
   deploy:
     Body:
-      $create_port_chain($.portPairGroup. $.flowClassifier)
+      - $create_port_chain($.portPairGroup. $.flowClassifier)
 

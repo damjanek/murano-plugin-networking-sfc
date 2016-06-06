@@ -1,0 +1,14 @@
+netsfc: io.murano.extensions.networking_sfc
+
+Name: PortChain
+
+Properties:
+  portPairGroup:
+    Contract: $.class(res:PortPairGroup).notNull()
+
+  flowClassifier:
+    Contract: $.class(res:FlowClassifier).notNull()
+
+Methods:
+
+

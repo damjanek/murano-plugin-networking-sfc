@@ -1,0 +1,24 @@
+netsfc: io.murano.extensions.networking_sfc
+
+Name: PortPair
+
+Properties:
+  id:
+    Contract: $.string().notNull()
+
+  name:
+    Contract: $.string().notNull()
+
+  description:
+    Contract: $.string()
+
+  ingressPort:
+    Contract: $.string().notNull()
+
+  egressPort:
+    Contract: $.string().notNull()
+
+
+Methods:
+
+

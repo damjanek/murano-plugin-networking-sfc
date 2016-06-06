@@ -1,0 +1,10 @@
+
+netsfc: io.murano.extensions.networking_sfc
+
+Name: PortPairGroup
+
+Properties:
+  portPairs: 
+    Contract: [$.class(netsfc:PortPair).notNull()]
+
+Methods:

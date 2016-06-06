@@ -13,9 +13,9 @@
 Format: MuranoPL/1.2
 
 Type: Library
-FullName: io.murano.apps.sfc.plugin.MuranoSFC
+FullName: io.murano.apps.netsfc.plugin.NetSFC
 
-Name: SFC Library
+Name: NetSFC Library
 
 Description: >
   Integration with neutron-sfc
@@ -27,7 +27,7 @@ Tags:
   - Neutron
 
 Classes:
-  io.murano.apps.sfc: SFCApplication.yaml
+  io.murano.apps.sfc: NetSFCApplication.yaml
 
 Require:
-  io.murano.plugins.sfc: 0
+  io.murano.plugins.netsfc: 0

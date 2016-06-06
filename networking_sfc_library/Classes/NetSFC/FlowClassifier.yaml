@@ -1,0 +1,40 @@
+namespaces:
+  =: io.murano.apps.netsfc.plugin
+  netsfc: io.murano.extensions.networking_sfc
+
+Name: FlowClassifier
+
+Properties:
+  name:
+    Contract: $.string().notNull()
+
+  ethertype:
+    Contract: $.string().notNull()
+
+  protocol:
+    Contract: $.string().notNull()
+
+  source_port_range:
+    Contract: $.string().notNull()
+
+  destination_port_range:
+    Contract: $.string().notNull()
+
+  source_ip_prefix:
+    Contract: $.string().notNull()
+
+  destination_ip_prefix:
+    Contract: $.string().notNull()
+
+  logical_source_port:
+    Contract: $.string().notNull()
+
+  logical_dest_port:
+    Contract: $.string().notNull()
+
+Methods:
+  deploy:
+    Body:
+      - $create_flow_classifier($.name, $.ethertype, $.protocol,
+          $.source_port_range, $.destination_port_range, $.source_ip_prefix,
+          $.destination_ip_prefix, $.local_source_port, $.logical_dest_port)

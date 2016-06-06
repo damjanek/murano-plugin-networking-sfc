@@ -20,5 +20,9 @@ Properties:
 
 
 Methods:
+  deploy:
+    Body:
+      - $create_port_pair($.id, $.name, $.descritpion, $.ingressPort,
+          $.engressPort)
 
 

@@ -16,5 +16,6 @@
 class APIError(Exception):
     pass
 
+
 class NotFoundError(APIError):
     pass

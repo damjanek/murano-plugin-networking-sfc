@@ -14,8 +14,8 @@
 
 from murano.common import auth_utils
 from murano.dsl import session_local_storage
-from neutronclient.v2_0 import client
 from neutronclient.common import exceptions as n_err
+from neutronclient.v2_0 import client
 from oslo_config import cfg
 
 from murano_plugin_networking_sfc import config
@@ -43,7 +43,7 @@ class NetworkingSFCClient(object):
         return self._get_client(region)
 
     @staticmethod
-    @session_local_storage.execution_session_memorize
+    @session_local_storage.execution_session_memoize
     def _get_client(region):
         params = auth_utils.get_session_client_parameters(
             service_type='network', conf=CONF, region=region)
@@ -122,11 +122,11 @@ class NetworkingSFCClient(object):
 
     def create_port_pair_group(
             self, port_pairs, name=DEFAULT, description=DEFAULT):
-         request = self._prepare_request(
-             'port_pair_group', port_pairs=port_pairs, name=name,
-             description=description)
-         response = self._client.create_port_pair_group(request)
-         return response['port_pair_group']
+        request = self._prepare_request(
+            'port_pair_group', port_pairs=port_pairs, name=name,
+            description=description)
+        response = self._client.create_port_pair_group(request)
+        return response['port_pair_group']
 
     def delete_port_pair_group(self, id_):
         try:

@@ -29,3 +29,13 @@ def camel_case_to_underscore(name):
         '([a-z])([A-Z])',
         lambda m: m.group(1) + '_' + m.group(2).lower(),
         name)
+
+
+def params_converter(func, converter):
+    def wrapper(*args, **kwargs):
+        new_kwargs = {}
+        for key in kwargs:
+            new_key = converter(key)
+            new_kwargs[new_key] = kwargs[key]
+        return func(*args, **new_kwargs)
+    return wrapper

@@ -2,6 +2,7 @@
 *.egg-info/
 *.eggs/
 *.pyc
+.cache/
 .tox/
 AUTHORS
 ChangeLog

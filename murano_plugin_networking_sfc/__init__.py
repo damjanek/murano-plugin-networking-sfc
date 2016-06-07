@@ -57,6 +57,39 @@ class NetworkingSFCClient(object):
                 params[k] = v
         return {resource_name: params}
 
+    def create_port_chain(
+            self, port_pair_groups, flow_classifiers=DEFAULT,
+            name=DEFAULT, description=DEFAULT, chain_parameters=DEFAULT):
+        request = self._prepare_request(
+            'port_chain', port_pair_groups=port_pair_groups,
+            flow_classifiers=flow_classifiers, name=name,
+            description=description, chain_parameters=chain_parameters)
+        response = self._client.create_port_chain(request)
+        return response['port_chain']
+
+    def delete_port_chain(self, id_):
+        try:
+            self._client.delete_port_chain(id_)
+        except n_err.NotFound as exc:
+            raise error.NotFoundError(exc.message)
+
+    def list_port_chains(self):
+        response = self._client.list_port_chains()
+        return response['port_chains']
+
+    def show_port_chain(self, id_):
+        response = self._client.show_port_chain(id_)
+        return response['port_chain']
+
+    def update_port_chain(
+            self, id_, port_pair_groups=DEFAULT, name=DEFAULT,
+            description=DEFAULT):
+        request = self._prepare_request(
+            'port_chain', id=id_, port_pair_groups=port_pair_groups, name=name,
+            description=description)
+        response = self._client.update_port_chain(request)
+        return response['port_chain']
+
     def create_port_pair(
             self, ingress, egress, name=DEFAULT, description=DEFAULT,
             service_function_parameters=DEFAULT):
@@ -86,3 +119,33 @@ class NetworkingSFCClient(object):
             'port_pair', id=id_, name=name, description=description)
         response = self._client.update_port_pair(request)
         return response['port_pair']
+
+    def create_port_pair_group(
+            self, port_pairs, name=DEFAULT, description=DEFAULT):
+         request = self._prepare_request(
+             'port_pair_group', port_pairs=port_pairs, name=name,
+             description=description)
+         response = self._client.create_port_pair_group(request)
+         return response['port_pair_group']
+
+    def delete_port_pair_group(self, id_):
+        try:
+            self._client.delete_port_pair_group(id_)
+        except n_err.NotFound as exc:
+            raise error.NotFoundError(exc.message)
+
+    def list_port_pair_groups(self):
+        response = self._client.list_port_pair_groups()
+        return response['port_pair_groups']
+
+    def show_port_pair_group(self, id_):
+        response = self._client.show_port_pair_group(id_)
+        return response['port_pair_group']
+
+    def update_port_pair_group(
+            self, id_, port_pairs=DEFAULT, name=DEFAULT, description=DEFAULT):
+        request = self._prepare_request(
+            'port_pair_group', id=id_, port_pairs=port_pairs,
+            name=name, description=description)
+        response = self._client.update_port_pair_group(request)
+        return response['port_pair_group']

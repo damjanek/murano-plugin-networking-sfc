@@ -17,7 +17,6 @@ from oslo_config import cfg
 
 def init_config(conf):
     opts = [
-        # cfg.IntOpt('api_version', default=2),
         cfg.StrOpt('endpoint_type', default='publicURL')
     ]
     conf.register_opts(opts, group="networking_sfc")

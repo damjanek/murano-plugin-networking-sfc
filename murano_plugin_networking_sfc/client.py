@@ -29,10 +29,6 @@ class _BaseResourceWrapper(object):
     def plural_name(self):
         pass
 
-    @abc.abstractproperty
-    def params(self):
-        pass
-
     def __init__(self, client):
         self._client = client
 
@@ -40,24 +36,11 @@ class _BaseResourceWrapper(object):
         function_name = '{0}_{1}'.format(action, resource_name)
         return getattr(self._client, function_name)
 
-    def _prepare_request(self, action, params):
-        for key, rules in six.iteritems(self.params):
-            if key not in params:
-                if 'required' in rules:
-                    raise error.ParameterMissing(
-                        "Required parameter '{0}' is missing".format(key))
-                else:
-                    continue
-
-            if action not in rules:
-                raise error.ActionNotAllowed(
-                    "Action '{0}' is not allowed for parameter '{1}'".format(
-                        action, key))
-
+    def _prepare_request(self, params):
         return {self.name: params}
 
     def create(self, **kwargs):
-        request = self._prepare_request('create', kwargs)
+        request = self._prepare_request(kwargs)
         response = self._get_neutron_function(self.name, 'create')(request)
         return response[self.name]
 
@@ -72,7 +55,7 @@ class _BaseResourceWrapper(object):
 
     def update(self, id_, **kwargs):
         kwargs['id'] = id_
-        request = self._prepare_request(self.name, 'update', kwargs)
+        request = self._prepare_request(kwargs)
         try:
             response = self._get_neutron_function(self.name, 'update')(request)
         except n_err.NotFound as exc:
@@ -90,58 +73,24 @@ class PortChain(_BaseResourceWrapper):
 
     name = 'port_chain'
     plural_name = '{0}s'.format(name)
-    params = {
-        'name': ['create', 'update'],
-        'description': ['create', 'update'],
-        'port_pair_groups': ['create', 'update', 'required'],
-        'flow_classifiers': ['create', 'update'],
-        'chain_parameters': ['create'],
-    }
 
 
 class PortPair(_BaseResourceWrapper):
 
     name = 'port_pair'
     plural_name = '{0}s'.format(name)
-    params = {
-        'name': ['create', 'update'],
-        'description': ['create', 'update'],
-        'ingress': ['create', 'required'],
-        'egress': ['create', 'required'],
-        'service_function_parameters': ['create'],
-    }
 
 
 class PortPairGroup(_BaseResourceWrapper):
 
     name = 'port_pair_group'
     plural_name = '{0}s'.format(name)
-    params = {
-        'name': ['create', 'update'],
-        'description': ['create', 'update'],
-        'port_pairs': ['create', 'update', 'required'],
-    }
 
 
 class FlowClassifier(_BaseResourceWrapper):
 
     name = 'flow_classifier'
     plural_name = '{0}s'.format(name)
-    params = {
-        'name': ['create', 'update'],
-        'description': ['create', 'update'],
-        'ethertype': ['create'],
-        'protocol': ['create'],
-        'source_port_range_min': ['create'],
-        'source_port_range_max': ['create'],
-        'destination_port_range_min': ['create'],
-        'destination_port_range_max': ['create'],
-        'source_ip_prefix': ['create'],
-        'destination_ip_prefix': ['create'],
-        'logical_source_port': ['create'],
-        'logical_destination_port': ['create'],
-        'l7_parameters': ['create']
-    }
 
 
 class _BaseNeutronClient(object):

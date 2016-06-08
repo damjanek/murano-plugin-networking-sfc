@@ -19,11 +19,3 @@ class APIError(Exception):
 
 class NotFound(APIError):
     pass
-
-
-class ParameterMissing(APIError):
-    pass
-
-
-class ActionNotAllowed(APIError):
-    pass

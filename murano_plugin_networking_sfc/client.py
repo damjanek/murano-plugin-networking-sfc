@@ -19,6 +19,7 @@ CONF = cfg.CONF
 class _BaseResourceWrapper(object):
 
     allowed_actions = ['create', 'list', 'show', 'update', 'delete']
+    plural_actions = ['list']
 
     @abc.abstractproperty
     def name(self):
@@ -64,16 +65,25 @@ class _BaseResourceWrapper(object):
         return self._get_neutron_function(self.plural_name, 'list')()
 
     def show(self, id_):
-        return self._get_neutron_function(self.name, 'show')(id_)
+        try:
+            return self._get_neutron_function(self.name, 'show')(id_)
+        except n_err.NotFound as exc:
+            raise error.NotFound(exc.message)
 
     def update(self, id_, **kwargs):
         kwargs['id'] = id_
         request = self._prepare_request(self.name, 'update', kwargs)
-        response = self._get_neutron_function(self.name, 'update')(request)
+        try:
+            response = self._get_neutron_function(self.name, 'update')(request)
+        except n_err.NotFound as exc:
+            raise error.NotFound(exc.message)
         return response[self.name]
 
     def delete(self, id_):
-        return self._get_neutron_function(self.name, 'delete')(id_)
+        try:
+            return self._get_neutron_function(self.name, 'delete')(id_)
+        except n_err.NotFound as exc:
+            raise error.NotFound(exc.message)
 
 
 class PortChain(_BaseResourceWrapper):
@@ -156,11 +166,6 @@ class _BaseNeutronClient(object):
             service_type='network', conf=CONF, region=region)
         return n_client.Client(**params)
 
-    def __getattr__(self, item):
-        item = common.camel_case_to_underscore(item)
-
-        return common.params_converter(func, common.camel_case_to_underscore)
-
 
 class NetworkinfSFCClient(_BaseNeutronClient):
 
@@ -174,8 +179,24 @@ class NetworkinfSFCClient(_BaseNeutronClient):
     def __init__(self, this):
         super(NetworkinfSFCClient, self).__init__(this)
 
-        self._resource_wrappers = []
-        for resource_cls in self.resources:
-            self._resource_wrappers.append(resource_cls(self.client))
+        self._methods = {}
+        for rs_cls in self.resource_classes:
+            resource = rs_cls(self.client)
+            for action in resource.allowed_actions:
+                if action in resource.pluial_actions:
+                    name = resource.plural_name
+                else:
+                    name = resource.name
+                name = '{0}_{1}'.format(action, name)
+                self._methods[name] = common.params_converter(
+                    getattr(resource, action),
+                    common.camel_case_to_underscore)
 
-
+    def __getattr__(self, name):
+        name = common.camel_case_to_underscore(name)
+        try:
+            return self._methods[name]
+        except KeyError:
+            raise AttributeError(
+                "'{0}' object has no attribute '{1}'".format(
+                    self.__class__.__name__, name))

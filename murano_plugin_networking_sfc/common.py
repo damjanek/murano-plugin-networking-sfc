@@ -18,24 +18,24 @@ import re
 def underscore_to_camel_case(name):
     """Converts lower case underscore names to camel case."""
     return re.sub(
-        r'(.)_([a-z])',
-        lambda m: m.group(1) + m.group(2).upper(),
-        name)
+        r'(?!^)_([a-z])',
+        lambda m: m.group(1).upper(),
+        name
+    )
 
 
 def camel_case_to_underscore(name):
-    """Converts camel case names to underscore lower case"""
+    """Converts camel case names to underscore lower case."""
     return re.sub(
         '([a-z])([A-Z])',
         lambda m: m.group(1) + '_' + m.group(2).lower(),
         name)
 
 
-def params_converter(func, converter):
+def convention_wrapper(func, converter=camel_case_to_underscore):
+    """Transforms function keyword argument namesd."""
     def wrapper(*args, **kwargs):
-        new_kwargs = {}
-        for key in kwargs:
-            new_key = converter(key)
-            new_kwargs[new_key] = kwargs[key]
-        return func(*args, **new_kwargs)
+        kwargs = {converter(key): value for key, value
+                  in kwargs.iteritems()}
+        return func(*args, **kwargs)
     return wrapper

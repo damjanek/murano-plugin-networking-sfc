@@ -1,96 +1,27 @@
-import abc
-
-import six
+#    Copyright 2016 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
 
 from murano.common import auth_utils
 from murano.dsl import session_local_storage
-from neutronclient.common import exceptions as n_err
 from neutronclient.v2_0 import client as n_client
 from oslo_config import cfg
 
-from murano_plugin_networking_sfc import config
 from murano_plugin_networking_sfc import common
-from murano_plugin_networking_sfc import error
-
+from murano_plugin_networking_sfc import config
+from murano_plugin_networking_sfc import resource
 
 CONF = cfg.CONF
-
-
-class _BaseResourceWrapper(object):
-
-    allowed_actions = ['create', 'list', 'show', 'update', 'delete']
-    plural_actions = ['list']
-
-    @abc.abstractproperty
-    def name(self):
-        pass
-
-    @abc.abstractproperty
-    def plural_name(self):
-        pass
-
-    def __init__(self, client):
-        self._client = client
-
-    def _get_neutron_function(self, resource_name, action):
-        function_name = '{0}_{1}'.format(action, resource_name)
-        return getattr(self._client, function_name)
-
-    def _prepare_request(self, params):
-        return {self.name: params}
-
-    def create(self, **kwargs):
-        request = self._prepare_request(kwargs)
-        response = self._get_neutron_function(self.name, 'create')(request)
-        return response[self.name]
-
-    def list(self):
-        return self._get_neutron_function(self.plural_name, 'list')()
-
-    def show(self, id_):
-        try:
-            return self._get_neutron_function(self.name, 'show')(id_)
-        except n_err.NotFound as exc:
-            raise error.NotFound(exc.message)
-
-    def update(self, id_, **kwargs):
-        kwargs['id'] = id_
-        request = self._prepare_request(kwargs)
-        try:
-            response = self._get_neutron_function(self.name, 'update')(request)
-        except n_err.NotFound as exc:
-            raise error.NotFound(exc.message)
-        return response[self.name]
-
-    def delete(self, id_):
-        try:
-            return self._get_neutron_function(self.name, 'delete')(id_)
-        except n_err.NotFound as exc:
-            raise error.NotFound(exc.message)
-
-
-class PortChain(_BaseResourceWrapper):
-
-    name = 'port_chain'
-    plural_name = '{0}s'.format(name)
-
-
-class PortPair(_BaseResourceWrapper):
-
-    name = 'port_pair'
-    plural_name = '{0}s'.format(name)
-
-
-class PortPairGroup(_BaseResourceWrapper):
-
-    name = 'port_pair_group'
-    plural_name = '{0}s'.format(name)
-
-
-class FlowClassifier(_BaseResourceWrapper):
-
-    name = 'flow_classifier'
-    plural_name = '{0}s'.format(name)
 
 
 class _BaseNeutronClient(object):
@@ -116,35 +47,34 @@ class _BaseNeutronClient(object):
         return n_client.Client(**params)
 
 
-class NetworkinfSFCClient(_BaseNeutronClient):
+class NetworkingSFCClient(_BaseNeutronClient):
 
     resources = [
-        PortChain,
-        PortPair,
-        PortPairGroup,
-        FlowClassifier,
+        resource.PortChain,
+        resource.PortPair,
+        resource.PortPairGroup,
+        resource.FlowClassifier,
     ]
 
     def __init__(self, this):
-        super(NetworkinfSFCClient, self).__init__(this)
+        super(NetworkingSFCClient, self).__init__(this)
 
+        # TODO(asaprykin): Construct in metaclass
         self._methods = {}
-        for rs_cls in self.resource_classes:
-            resource = rs_cls(self.client)
-            for action in resource.allowed_actions:
-                if action in resource.pluial_actions:
-                    name = resource.plural_name
+        for rs_cls in self.resources:
+            resource_obj = rs_cls(self.client)
+            for action in resource_obj.allowed_actions:
+                if action in resource_obj.plural_actions:
+                    name = resource_obj.plural_name
                 else:
-                    name = resource.name
+                    name = resource_obj.name
                 name = '{0}_{1}'.format(action, name)
-                self._methods[name] = common.params_converter(
-                    getattr(resource, action),
-                    common.camel_case_to_underscore)
+                self._methods[name] = getattr(resource_obj, action)
 
     def __getattr__(self, name):
         name = common.camel_case_to_underscore(name)
         try:
-            return self._methods[name]
+            return common.convention_wrapper(self._methods[name])
         except KeyError:
             raise AttributeError(
                 "'{0}' object has no attribute '{1}'".format(

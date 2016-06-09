@@ -37,9 +37,3 @@ class TestNameConverters(unittest.TestCase):
         for underscore, camel_case in self.names:
             self.assertEqual(common.camel_case_to_underscore(camel_case),
                              underscore)
-
-
-class TestCommon(unittest.TestCase):
-
-    def test_params_converter(self):
-        pass

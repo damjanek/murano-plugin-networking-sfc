@@ -1,4 +1,5 @@
 -r requirements.txt
 
 pytest>=2.9.2
+mock>=2.0.0
 hacking<0.12,>=0.11.0

@@ -12,4 +12,4 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from murano_plugin_networking_sfc.client import NetworkinfSFCClient
+from murano_plugin_networking_sfc.client import NetworkingSFCClient

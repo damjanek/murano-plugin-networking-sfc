@@ -27,7 +27,10 @@ Tags:
   - Neutron
 
 Classes:
-  io.murano.apps.sfc: NetSFCApplication.yaml
+  io.murano.extensions.networking_sfc.FlowClassifier: FlowClassifier.yaml
+  io.murano.extensions.networking_sfc.PortChain: PortChain.yaml
+  io.murano.extensions.networking_sfc.PortPair: PortPair.yaml
+  io.murano.extensions.networking_sfc.PortPairGroup: PortPairGroup.yaml
 
 Require:
   io.murano.plugins.netsfc: 0

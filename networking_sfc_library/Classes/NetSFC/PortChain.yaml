@@ -1,4 +1,5 @@
-netsfc: io.murano.extensions.networking_sfc
+namespaces:
+  =: io.murano.extensions.networking_sfc
 
 Name: PortChain
 

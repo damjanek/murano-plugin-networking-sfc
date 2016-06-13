@@ -33,4 +33,4 @@ Classes:
   io.murano.extensions.networking_sfc.PortPairGroup: PortPairGroup.yaml
 
 Require:
-  io.murano.plugins.netsfc: 0
+  io.murano.extensions.networking_sfc: 0

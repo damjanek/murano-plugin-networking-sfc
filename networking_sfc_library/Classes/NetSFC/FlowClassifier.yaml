@@ -1,6 +1,5 @@
 namespaces:
-  =: io.murano.apps.netsfc.plugin
-  netsfc: io.murano.extensions.networking_sfc
+  =: io.murano.extensions.networking_sfc
 
 Name: FlowClassifier
 

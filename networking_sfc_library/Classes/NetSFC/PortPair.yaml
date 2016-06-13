@@ -5,23 +5,31 @@ Name: PortPair
 
 Properties:
   id:
-    Contract: $.string().notNull()
+    Contract: $.string()
+    Usage: Out
 
   name:
-    Contract: $.string().notNull()
+    Contract: $.string()
+    Default: null
 
   description:
     Contract: $.string()
+    Default: null
 
-  ingressPort:
+  ingress:
     Contract: $.string().notNull()
 
-  egressPort:
+  egress:
     Contract: $.string().notNull()
-
 
 Methods:
+  .init:
+    Body:
+      - $.sfcClient: new(NetworkingSFCClient)
+
   deploy:
     Body:
-      - $create_port_pair($.id, $.name, $.descritpion, $.ingressPort,
-          $.engressPort)
+      - $data: $.sfcClient.createPortPair(
+          name => $.name, description => $.descritpion,
+          ingress => $.ingress, egress => $.engress)
+      - $.id: $data.id

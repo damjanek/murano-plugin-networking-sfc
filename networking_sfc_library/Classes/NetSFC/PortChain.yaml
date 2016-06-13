@@ -4,13 +4,43 @@ namespaces:
 Name: PortChain
 
 Properties:
-  portPairGroup:
-    Contract: $.class(res:PortPairGroup).notNull()
+  id:
+    Contract: $.string()
+    Usage: Out
 
-  flowClassifier:
-    Contract: $.class(res:FlowClassifier).notNull()
+  name:
+    Contract: $.string()
+    Default: null
+
+  description:
+    Contract: $.string()
+    Default: null
+
+  portPairGroups:
+    Contract: [$.class(PortPairGroup).notNull()]
+
+  flowClassifiers:
+    Contract: [$.class(FlowClassifier).notNull()]
 
 Methods:
+  .init:
+    Body:
+      - $.sfcClient: new(NetworkingSFCClient)
+
   deploy:
     Body:
-      - $create_port_chain($.portPairGroup. $.flowClassifier)
+      - $portPairGroups: []
+      - For: $id
+        In: $.portPairGroups
+        Do:
+          - $portPairGroups.append(): $id
+      - $flowClassifiers: []
+      - For: $id
+        In: $.flowClassifiers
+        Do:
+          - $flowClassifiers.append(): $id
+      - $data: $sfcClient.createPortChain(
+          name => $.name, description => $.description,
+          portPairGroups => $portPairGroups,
+          flowClassifiers => $flowClassifiers)
+      - $.id: $data.id

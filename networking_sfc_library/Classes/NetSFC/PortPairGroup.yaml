@@ -4,10 +4,34 @@ namespaces:
 Name: PortPairGroup
 
 Properties:
+  id:
+    Contract: $.string()
+    Usage: Out
+
+  name:
+    Contract: $.string()
+    Default: null
+
+  description:
+    Contract: $.string()
+    Default: null
+
   portPairs:
-    Contract: [$.class(netsfc:PortPair).notNull()]
+    Contract: [$.class(PortPair).notNull()]
 
 Methods:
+  .init:
+    Body:
+      - $.sfcClient: new(NetworkingSFCClient)
+
   deploy:
     Body:
-      - $create_port_pair_group($.portPairs)
+      - $portPairs: []
+      - For: $id
+        In: $.portPairs
+        Do:
+          - $portPairs.append(): $id
+      - $data: $sfcClient.createPortPairGroup(
+          name => $.name, description => $.description,
+          portPairs => $portPairs)
+      - $.id: $data.id

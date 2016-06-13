@@ -4,36 +4,62 @@ namespaces:
 Name: FlowClassifier
 
 Properties:
+  id:
+    Contract: $.string()
+    Usage: Out
+
   name:
-    Contract: $.string().notNull()
+    Contract: $.string()
+    Default: null
+
+  description:
+    Contract: $.string()
+    Default: null
 
   ethertype:
     Contract: $.string().notNull()
+    Default: 'IPv4'
 
   protocol:
+    Contract: $.string()
+    Default: null
+
+  sourcePortRange:
+    Contract: [$.int(), 2, 2]
+
+  destinationPortRange:
+    Contract: [$.int(), 2, 2]
+
+  sourceIpPrefix:
+    Contract: $.string()
+    Default: null
+
+  destinationIpPrefix:
+    Contract: $.string()
+    Default: null
+
+  logicalSourcePort:
     Contract: $.string().notNull()
 
-  source_port_range:
-    Contract: $.string().notNull()
-
-  destination_port_range:
-    Contract: $.string().notNull()
-
-  source_ip_prefix:
-    Contract: $.string().notNull()
-
-  destination_ip_prefix:
-    Contract: $.string().notNull()
-
-  logical_source_port:
-    Contract: $.string().notNull()
-
-  logical_dest_port:
+  logicalDestinationPort:
     Contract: $.string().notNull()
 
 Methods:
+  .init:
+    Body:
+      - $.sfcClient: new(NetworkingSFCClient)
+
   deploy:
     Body:
-      - $create_flow_classifier($.name, $.ethertype, $.protocol,
-          $.source_port_range, $.destination_port_range, $.source_ip_prefix,
-          $.destination_ip_prefix, $.local_source_port, $.logical_dest_port)
+      - $data: $.sfcClient.createFlowClassifier(
+          name => $.name, description => $.description,
+          ethertype => $.ethertype, protocol => $.protocol,
+          sourcePortRangeMin => $.sourcePortRange[0],
+          sourcePortRangeMax => $.sourcePortRange[1],
+          destinationPortRangeMin => $.destinationPortRange[0],
+          destinationPortRangeMin => $.destinationPortRange[1],
+          sourceIpPrefix => $.sourceIpPrefix,
+          destinationIpPrefix => $.destinationIpPrefix,
+          logicalSourcePort => $.localSourcePort,
+          logicalDestinationPort => $logicalDestinationPort)
+      - $.id: $data.id
